@@ -258,7 +258,8 @@ class CuratoApp(App):
             with TabPane("대시보드", id="dashboard"):
                 with Vertical(id="dashboard-layout"):
                     with Horizontal(id="top-bar"):
-                        yield Button("▶ 파이프라인 실행", id="btn-run", variant="success")
+                        yield Button("▶ 전체 파이프라인 실행", id="btn-run", variant="success")
+                        yield Button("🧠 DB 데이터로 클러스터링", id="btn-run-cluster", variant="primary")
                         yield Button("■ 중지", id="btn-stop", variant="error", disabled=True)
                         yield Label("   준비됨", id="status-text")
                     with Horizontal(id="stage-panel"):
@@ -347,7 +348,9 @@ class CuratoApp(App):
     def on_button_pressed(self, event: Button.Pressed):
         bid = event.button.id
         if bid == "btn-run":
-            self._start_pipeline()
+            self._start_pipeline(clustering_only=False)
+        elif bid == "btn-run-cluster":
+            self._start_pipeline(clustering_only=True)
         elif bid == "btn-stop":
             self._stop_pipeline()
         elif bid == "btn-collect-all":
@@ -384,32 +387,38 @@ class CuratoApp(App):
     #  Pipeline Execution (대시보드)
     # ═══════════════════════════════════════════════════════════
 
-    def _start_pipeline(self):
+    def _start_pipeline(self, clustering_only=False):
         if self.is_running:
             return
         self.is_running = True
 
         self.query_one("#btn-run", Button).disabled = True
+        self.query_one("#btn-run-cluster", Button).disabled = True
         self.query_one("#btn-stop", Button).disabled = False
-        self.query_one("#status-text", Label).update("   🔄 실행 중...")
+        
+        mode_text = "클러스터링" if clustering_only else "파이프라인"
+        self.query_one("#status-text", Label).update(f"   🔄 {mode_text} 실행 중...")
 
         log = self.query_one("#log", RichLog)
         log.clear()
-        log.write("[bold cyan]━━━ 파이프라인 시작 ━━━[/bold cyan]")
+        log.write(f"[bold cyan]━━━ {mode_text} 시작 ━━━[/bold cyan]")
 
         for s in ["init", "collect", "index", "group", "rank", "llm", "context", "publish"]:
             self.query_one(f"#card-{s}", StageCard).reset()
 
-        self.run_worker(self._run_pipeline_worker, thread=True)
+        self.run_worker(lambda: self._run_pipeline_worker(clustering_only), thread=True)
 
     def _stop_pipeline(self):
         self.is_running = False
         self.query_one("#status-text", Label).update("   ⏹ 중지됨")
 
-    def _run_pipeline_worker(self):
+    def _run_pipeline_worker(self, clustering_only=False):
         runner = PipelineRunner()
         self._runner = runner
-        for event in runner.run():
+        
+        generator = runner.run_clustering_only() if clustering_only else runner.run()
+        
+        for event in generator:
             if not self.is_running:
                 self.call_from_thread(self._on_pipeline_event,
                                       PipelineEvent("pipeline", "done", "사용자에 의해 중지됨."))
@@ -438,6 +447,7 @@ class CuratoApp(App):
     def _on_pipeline_complete(self, runner: PipelineRunner):
         self.is_running = False
         self.query_one("#btn-run", Button).disabled = False
+        self.query_one("#btn-run-cluster", Button).disabled = False
         self.query_one("#btn-stop", Button).disabled = True
         self.query_one("#status-text", Label).update(
             f"   ✅ 완료 (run: {runner.run_id[:8]})")

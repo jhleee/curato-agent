@@ -66,6 +66,30 @@ class PipelineRunner:
                             {"run_id": self.run_id, "clusters": len(self.top_clusters),
                              "issues": len(self.final_issues)})
 
+    def run_clustering_only(self, hours: int = 24):
+        """Generator that skips collection and runs clustering on recent DB items."""
+        yield from self._stage_init()
+        
+        yield PipelineEvent("collect", "start", f"Fetching items from last {hours} hours...")
+        items = self.db.get_recent_items(hours=hours)
+        if not items:
+            yield PipelineEvent("collect", "done", f"No items found in the last {hours} hours. Aborting.")
+            return
+            
+        self.new_items = items
+        yield PipelineEvent("collect", "done", f"Fetched {len(items)} items from DB.", {"total": len(items)})
+        
+        yield from self._stage_index()
+        yield from self._stage_group()
+        yield from self._stage_rank()
+        yield from self._stage_llm()
+        yield from self._stage_context()
+        yield from self._stage_publish()
+        
+        yield PipelineEvent("pipeline", "done", f"Clustering run {self.run_id[:8]} completed.",
+                            {"run_id": self.run_id, "clusters": len(self.top_clusters),
+                             "issues": len(self.final_issues)})
+
     # ── Stage implementations ─────────────────────────────────
 
     def _stage_init(self):

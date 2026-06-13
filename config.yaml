@@ -1,48 +1,44 @@
 collectors:
+  clien: false
   naver: true
-  clien: true
-  ruliweb: true
-
-indexer:
-  embedding_model: "BAAI/bge-m3"
-  embedding_dim: 1024
-
+  ruliweb: false
 grouper:
-  similarity_threshold: 0.92
   min_cluster_size: 2
   min_samples: 2
-
-ranker:
-  trend_score_weights:
-    volume: 0.20
-    engagement: 0.20
-    burst: 0.25
-    source_diversity: 0.15
-    cohesion: 0.10
-    novelty: 0.05
-    user_preference: 0.05
-  top_n_issues: 5
-  min_trend_score: 0.30
-
+  similarity_threshold: 0.92
+indexer:
+  embedding_dim: 1024
+  embedding_model: BAAI/bge-m3
 llm:
-  cohesion_threshold: 0.72
   auto_label_min_cluster_size: 4
   clickbait_keywords:
-    - "이거"
-    - "저거"
-    - "결국"
-    - "드디어"
-    - "대박"
-    - "헐"
-    - "미쳤"
-    - "충격"
-    - "대체"
-    - "진짜"
-    - "실화"
-    - "역대급"
-    - "this"
-    - "finally"
-    - "wtf"
-    - "omg"
-    - "holy"
-    - "literally"
+  - 이거
+  - 저거
+  - 결국
+  - 드디어
+  - 대박
+  - 헐
+  - 미쳤
+  - 충격
+  - 대체
+  - 진짜
+  - 실화
+  - 역대급
+  - this
+  - finally
+  - wtf
+  - omg
+  - holy
+  - literally
+  cohesion_threshold: 0.72
+ranker:
+  min_trend_score: 0.3
+  top_n_issues: 5
+  trend_score_weights:
+    burst: 0.25
+    cohesion: 0.1
+    engagement: 0.2
+    novelty: 0.05
+    source_diversity: 0.15
+    user_preference: 0.05
+    volume: 0.2

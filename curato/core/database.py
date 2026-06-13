@@ -34,6 +34,31 @@ class Database:
             conn.executemany(query, data)
             conn.commit()
 
+    def get_recent_items(self, hours: int = 24):
+        from curato.core.models import FeedItem
+        from datetime import datetime, timedelta
+        
+        since = datetime.now() - timedelta(hours=hours)
+        query = """
+            SELECT id, title, normalized_title, url, canonical_url, url_hash, source, 
+                   language, snippet, category, created_at, collected_at, comment_count, upvote_count
+            FROM feed_items
+            WHERE collected_at >= ?
+        """
+        
+        items = []
+        with self.get_connection() as conn:
+            # sqlite returns datetime as string if not using PARSE_DECLTYPES
+            for row in conn.execute(query, (since.strftime("%Y-%m-%d %H:%M:%S"),)):
+                created_dt = datetime.strptime(row[10].split('.')[0], "%Y-%m-%d %H:%M:%S") if row[10] else None
+                collected_dt = datetime.strptime(row[11].split('.')[0], "%Y-%m-%d %H:%M:%S") if row[11] else datetime.now()
+                items.append(FeedItem(
+                    id=row[0], title=row[1], normalized_title=row[2], url=row[3], canonical_url=row[4],
+                    url_hash=row[5], source=row[6], language=row[7], snippet=row[8], category=row[9],
+                    created_at=created_dt, collected_at=collected_dt, comment_count=row[12], upvote_count=row[13]
+                ))
+        return items
+
 def get_db(db_path="curato.db"):
     db = Database(db_path)
     db.init_db()
