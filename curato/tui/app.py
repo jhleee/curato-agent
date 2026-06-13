@@ -226,6 +226,78 @@ class ClusterDetail(Static):
 
 
 # ═══════════════════════════════════════════════════════════════
+#  Widget: Cluster Browser (저장된 클러스터 조회)
+# ═══════════════════════════════════════════════════════════════
+
+class ClusterBrowser(Static):
+    def compose(self) -> ComposeResult:
+        with Horizontal():
+            table = DataTable(id="cluster-list-table")
+            table.cursor_type = "row"
+            yield table
+
+            with Vertical(id="cluster-browser-right"):
+                yield Label("선택된 클러스터 상세", id="cb-detail-label", classes="section-title")
+                item_table = DataTable(id="cb-item-table")
+                item_table.cursor_type = "row"
+                yield item_table
+
+    def on_mount(self):
+        c_table = self.query_one("#cluster-list-table", DataTable)
+        c_table.add_columns("생성일시", "라벨/요약", "점수", "크기", "응집도")
+        
+        i_table = self.query_one("#cb-item-table", DataTable)
+        i_table.add_columns("작성일", "제목", "출처", "URL")
+
+    def populate_clusters(self, clusters: list[dict]):
+        table = self.query_one("#cluster-list-table", DataTable)
+        table.clear()
+        self._clusters_data = clusters
+        for i, c in enumerate(clusters):
+            dt = str(c.get("created_at", ""))[:16]
+            label = c.get("final_label") or c.get("one_line_summary") or "알 수 없음"
+            score = f"{c.get('trend_score', 0):.4f}"
+            size = str(c.get("volume", 0))
+            cohesion = f"{c.get('cohesion', 0):.3f}"
+            table.add_row(dt, label[:30], score, size, cohesion, key=str(i))
+
+    def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted):
+        if event.data_table.id == "cluster-list-table":
+            if not hasattr(self, "_clusters_data"):
+                return
+            idx = int(event.row_key.value)
+            cluster = self._clusters_data[idx]
+            self._show_cluster_items(cluster)
+
+    def _show_cluster_items(self, cluster: dict):
+        label = self.query_one("#cb-detail-label", Label)
+        cid = cluster.get("cluster_id", "?")
+        final = cluster.get("final_label", "")
+        summary = cluster.get("one_line_summary", "")
+        text = f"[bold]{cid}[/bold]\n"
+        if final: text += f"라벨: {final}\n"
+        if summary: text += f"요약: {summary}"
+        label.update(text)
+
+        try:
+            from curato.core.database import Database
+            from curato.core.config import config
+            db = Database(config.DB_PATH)
+            items = db.get_cluster_items(cid)
+            
+            table = self.query_one("#cb-item-table", DataTable)
+            table.clear()
+            for item in items:
+                dt = str(item.get("created_at", ""))[:16]
+                title = item.get("title", "")[:50]
+                source = item.get("source", "")
+                url = item.get("url", "")[:40]
+                table.add_row(dt, title, source, url)
+        except Exception as e:
+            label.update(f"[red]Failed to load items: {e}[/red]")
+
+
+# ═══════════════════════════════════════════════════════════════
 #  Main App
 # ═══════════════════════════════════════════════════════════════
 
@@ -311,6 +383,10 @@ class CuratoApp(App):
                     db_table = DataTable(id="db-table")
                     db_table.cursor_type = "row"
                     yield db_table
+
+            # ── Tab 6: 클러스터 이력 ──
+            with TabPane("클러스터 이력", id="cluster-history-tab"):
+                yield ClusterBrowser(id="cluster-browser-panel")
 
         yield Footer()
 
@@ -654,6 +730,16 @@ class CuratoApp(App):
 
             count_label = self.query_one("#db-count-label", Label)
             count_label.update(f"  {len(rows)}건 표시")
+
+            # 클러스터 이력도 함께 갱신
+            try:
+                from curato.core.database import Database
+                db2 = Database(config.DB_PATH)
+                clusters = db2.get_clusters(limit=100)
+                self.query_one("#cluster-browser-panel", ClusterBrowser).populate_clusters(clusters)
+            except Exception as ce:
+                pass
+
         except Exception as e:
             try:
                 count_label = self.query_one("#db-count-label", Label)

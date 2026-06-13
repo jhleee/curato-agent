@@ -296,6 +296,14 @@ class PipelineRunner:
 
     def _stage_publish(self):
         yield PipelineEvent("publish", "start", "Publishing results...")
+        
+        # 결과를 DB에 저장
+        try:
+            self.db.save_pipeline_results(self.run_id, self.final_issues)
+            yield PipelineEvent("publish", "progress", "Saved cluster results to database.")
+        except Exception as e:
+            yield PipelineEvent("publish", "error", f"Failed to save to DB: {e}")
+
         webhook_url = config.DISCORD_WEBHOOK_URL
         publisher = DiscordPublisher(webhook_url=webhook_url)
         if publisher.webhook_url:
