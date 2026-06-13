@@ -460,8 +460,12 @@ class CuratoApp(App):
     # ═══════════════════════════════════════════════════════════
 
     def _collect_all_sources(self):
+        flags = config.collectors
         for info in COLLECTOR_INFO:
-            self._collect_single_source(info["key"])
+            if flags.get(info["key"], True):
+                self._collect_single_source(info["key"])
+            else:
+                self._collect_log(f"[dim]⏸ {info['name']} 수집 건너뜀 (설정에서 비활성화됨)[/dim]")
 
     def _collect_single_source(self, source_key: str):
         card = self.query_one(f"#srccard-{source_key}", SourceCard)
@@ -496,10 +500,11 @@ class CuratoApp(App):
                 db = Database(config.DB_PATH)
                 db.insert_items(items)
             n = len(items)
+            skipped = getattr(collector, "skipped_count", 0)
             now = datetime.now().strftime("%H:%M:%S")
-            card_fn(f"✅ {n}건 수집 ({now})", "src-done")
-            count_fn(f"최근: {n}건")
-            log_fn(f"[green]✅ {source_key}: {n}건 수집 완료[/green]")
+            card_fn(f"✅ 신규 {n}건 ({now})", "src-done")
+            count_fn(f"신규: {n}건, 중복제외: {skipped}건")
+            log_fn(f"[green]✅ {source_key}: 신규 {n}건 수집 완료 (중복 제외 {skipped}건)[/green]")
         except Exception as e:
             card_fn(f"❌ {str(e)[:30]}", "src-error")
             log_fn(f"[red]❌ {source_key} 오류: {e}[/red]")

@@ -13,12 +13,14 @@ class BaseCollector:
     def __init__(self, db_path: str):
         self.normalizer = FeedNormalizer()
         self.dup_filter = DuplicateFilter(db_path)
+        self.skipped_count = 0
     
     def create_feed_item(self, title: str, url: str, source: str, snippet: Optional[str] = None, category: Optional[str] = None, created_at: Optional[datetime] = None) -> Optional[FeedItem]:
         canonical_url = self.normalizer.normalize_url(url)
         url_hash = self.normalizer.compute_url_hash(canonical_url)
         
         if self.dup_filter.is_already_collected(url_hash):
+            self.skipped_count += 1
             return None
             
         normalized_title = self.normalizer.normalize_title(title)

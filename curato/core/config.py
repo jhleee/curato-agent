@@ -36,6 +36,10 @@ class Config:
         return getattr(self, key, self.config_data.get(key, default))
 
     @property
+    def collectors(self):
+        return self.config_data.get("collectors", {"naver": True, "clien": True, "ruliweb": True})
+
+    @property
     def indexer(self):
         return self.config_data.get("indexer", {})
 

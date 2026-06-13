@@ -75,19 +75,30 @@ class PipelineRunner:
 
     def _stage_collect(self):
         yield PipelineEvent("collect", "start", "Starting feed collection...")
-        collectors = [
-            ("NaverNews", NaverNewsCollector(config.DB_PATH)),
-            ("Clien", ClienCollector(config.DB_PATH)),
-            ("Ruliweb", RuliwebCollector(config.DB_PATH)),
+        
+        collector_flags = config.collectors
+        
+        all_collectors = [
+            ("NaverNews", NaverNewsCollector(config.DB_PATH), collector_flags.get("naver", True)),
+            ("Clien", ClienCollector(config.DB_PATH), collector_flags.get("clien", True)),
+            ("Ruliweb", RuliwebCollector(config.DB_PATH), collector_flags.get("ruliweb", True)),
         ]
 
-        for name, collector in collectors:
+        active_collectors = [(name, coll) for name, coll, is_active in all_collectors if is_active]
+        
+        if not active_collectors:
+            yield PipelineEvent("collect", "done", "All collectors are disabled in config.")
+            return
+
+        for name, collector in active_collectors:
             yield PipelineEvent("collect", "progress", f"Collecting from {name}...")
             try:
                 items = collector.collect()
                 self.new_items.extend(items)
-                yield PipelineEvent("collect", "progress", f"{name}: {len(items)} items",
-                                    {"source": name, "count": len(items)})
+                skipped = getattr(collector, "skipped_count", 0)
+                msg = f"{name}: {len(items)} new items (skipped {skipped} duplicates)"
+                yield PipelineEvent("collect", "progress", msg,
+                                    {"source": name, "count": len(items), "skipped": skipped})
             except Exception as e:
                 yield PipelineEvent("collect", "error", f"{name} error: {e}",
                                     {"source": name, "error": str(e)})
