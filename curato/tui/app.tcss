@@ -1,0 +1,112 @@
+/* ═══════════════════════════════════════════════════════════
+   Curato TUI — Textual CSS
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Global ──────────────────────────────────────────────── */
+
+Screen {
+    background: $surface;
+}
+
+/* ── Dashboard layout ────────────────────────────────────── */
+
+#dashboard-layout {
+    height: 100%;
+}
+
+#top-bar {
+    height: 3;
+    padding: 0 1;
+    align: left middle;
+    background: $panel;
+}
+
+#top-bar Button {
+    margin: 0 1;
+    min-width: 16;
+}
+
+#status-text {
+    margin-left: 2;
+    content-align: center middle;
+    color: $text-muted;
+}
+
+/* ── Stage panel ─────────────────────────────────────────── */
+
+#stage-panel {
+    height: auto;
+    max-height: 14;
+    padding: 1 2;
+    layout: horizontal;
+    overflow-x: auto;
+}
+
+.stage-card {
+    width: 20;
+    height: 5;
+    margin: 0 1;
+    padding: 1;
+    border: round $primary-background;
+    background: $panel;
+    content-align: center middle;
+}
+
+.stage-card.running {
+    border: round $warning;
+    background: $warning 15%;
+}
+
+.stage-card.done {
+    border: round $success;
+    background: $success 15%;
+}
+
+.stage-card.error {
+    border: round $error;
+    background: $error 15%;
+}
+
+/* ── Log panel ───────────────────────────────────────────── */
+
+#log {
+    height: 1fr;
+    margin: 1 2;
+    padding: 1;
+    border: round $primary-background;
+    background: $surface;
+}
+
+/* ── Results layout ──────────────────────────────────────── */
+
+#results-layout {
+    height: 100%;
+}
+
+#results-panel {
+    width: 55%;
+    height: 100%;
+    padding: 1;
+}
+
+#detail-panel {
+    width: 45%;
+    height: 100%;
+    padding: 1;
+    border-left: solid $primary-background;
+}
+
+#detail-label {
+    margin-bottom: 1;
+    padding: 1;
+    background: $panel;
+    border: round $accent;
+}
+
+#results-table {
+    height: 100%;
+}
+
+#detail-table {
+    height: 1fr;
+}

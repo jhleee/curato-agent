@@ -9,6 +9,7 @@ Curato는 사용자가 관심 있는 다양한 온라인 커뮤니티 및 뉴스
 - **지표 기반 랭킹 알고리즘**: 볼륨, 반응성(추천/댓글), 최신성(Burst), 출처 다양성 등의 점수를 종합해 핵심 트렌드 산출
 - **LLM 큐레이터**: Z.AI / OpenAI 모델과 연동하여 복잡한 이슈에 대해 인사이트가 담긴 제목과 한줄 요약 생성
 - **디스코드 퍼블리싱**: 요약된 최종 인사이트를 설정된 디스코드 웹훅으로 자동 발송
+- **TUI 모드**: Textual 기반 터미널 UI로 파이프라인 진행 상황을 실시간 모니터링하고, 결과를 인터랙티브하게 탐색
 
 ## 시스템 요구사항 (Requirements)
 - Python 3.10+
@@ -32,13 +33,35 @@ DATA_DIR="data"
 ```
 
 ## 사용법 (Usage)
+
+### CLI 모드 (기본)
 ```bash
 python -m curato.main
 ```
 
+### TUI 모드 (터미널 UI)
+```bash
+python -m curato.main --tui
+```
+
+#### TUI 단축키
+| 키 | 기능 |
+|---|---|
+| `r` | 파이프라인 실행 |
+| `q` | 종료 |
+| `d` | 다크모드 전환 |
+
+TUI 모드에서는 대시보드 탭에서 각 스테이지의 실시간 진행 상태를 확인할 수 있고, 결과 탭에서 트렌드 클러스터를 선택해 세부 기사 목록을 탐색할 수 있습니다.
+
 ## 아키텍처 및 폴더 구조
-- `curato/core`: 데이터베이스, 모델(FeedItem), 환경설정(Config) 모음
-- `curato/pipeline`: `collector` -> `indexer` -> `grouper` -> `ranker` -> `llm_curator` -> `context` 로 이어지는 프로세스별 모듈
-- `curato/utils`: HTTP 요청 지연 처리, 문자열 정규화 등의 공통 유틸리티
-- `data/`: SQLite DB 및 FAISS 인덱스 등 영속성 파일이 보관되는 분리된 디렉토리
-- `config.yaml`: 랭킹 임계값, 군집 파라미터 등 튜닝이 가능한 외부 설정 파일
+```
+curato/
+├── core/           # 데이터베이스, 모델(FeedItem), 환경설정(Config)
+├── pipeline/       # collector → indexer → grouper → ranker → llm_curator → context
+│   └── runner.py   # CLI/TUI 공통 파이프라인 실행 엔진
+├── tui/            # Textual 기반 터미널 UI
+├── utils/          # HTTP 클라이언트, 정규화, 중복 필터 등
+└── publishers/     # Discord 웹훅 퍼블리셔
+data/               # SQLite DB, FAISS 인덱스 등 영속성 파일
+config.yaml         # 랭킹 임계값, 군집 파라미터 등 외부 설정
+```
