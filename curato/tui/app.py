@@ -47,6 +47,7 @@ STAGE_NAMES = {
 
 COLLECTOR_INFO = [
     {"key": "naver", "name": "네이버 뉴스", "icon": "📰", "cls_name": "NaverNewsCollector"},
+    {"key": "naver_issue", "name": "네이버 이슈", "icon": "🔥", "cls_name": "NaverIssueCollector"},
     {"key": "clien", "name": "클리앙", "icon": "💬", "cls_name": "ClienCollector"},
     {"key": "ruliweb", "name": "루리웹", "icon": "🎮", "cls_name": "RuliwebCollector"},
 ]
@@ -567,8 +568,10 @@ class CuratoApp(App):
         count_fn = lambda text: self.call_from_thread(
             self._update_source_count, source_key, text)
 
+        from curato.pipeline.collector import NaverNewsCollector, NaverIssueCollector, ClienCollector, RuliwebCollector
         collectors_map = {
             "naver": NaverNewsCollector,
+            "naver_issue": NaverIssueCollector,
             "clien": ClienCollector,
             "ruliweb": RuliwebCollector,
         }

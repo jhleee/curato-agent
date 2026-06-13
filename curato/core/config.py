@@ -40,6 +40,10 @@ class Config:
         return self.config_data.get("collectors", {"naver": True, "clien": True, "ruliweb": True})
 
     @property
+    def naver_issue_urls(self):
+        return self.config_data.get("naver_issue_urls", [])
+
+    @property
     def indexer(self):
         return self.config_data.get("indexer", {})
 

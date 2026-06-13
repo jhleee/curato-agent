@@ -13,7 +13,7 @@ import numpy as np
 from curato.core.database import Database
 from curato.core.config import config
 from curato.core.models import FeedItem
-from curato.pipeline.collector import NaverNewsCollector, ClienCollector, RuliwebCollector
+from curato.pipeline.collector import NaverNewsCollector, NaverIssueCollector, ClienCollector, RuliwebCollector
 from curato.pipeline.indexer import EmbeddingGenerator, LocalVectorIndex, build_embedding_input
 from curato.pipeline.grouper import NearDuplicateCollapser, TopicClusterer
 from curato.pipeline.ranker import TrendScoreCalculator
@@ -104,6 +104,7 @@ class PipelineRunner:
         
         all_collectors = [
             ("NaverNews", NaverNewsCollector(config.DB_PATH), collector_flags.get("naver", True)),
+            ("NaverIssue", NaverIssueCollector(config.DB_PATH), collector_flags.get("naver_issue", True)),
             ("Clien", ClienCollector(config.DB_PATH), collector_flags.get("clien", True)),
             ("Ruliweb", RuliwebCollector(config.DB_PATH), collector_flags.get("ruliweb", True)),
         ]

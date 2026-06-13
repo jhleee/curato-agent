@@ -156,5 +156,64 @@ class RuliwebCollector(HtmlCollector):
             source_name="ruliweb_best",
             item_selector=".table_body:not(.notice)",
             title_selector=".subject .deco",
-            link_selector=".subject .deco"
         )
+
+class NaverIssueCollector(BaseCollector):
+    """네이버 뉴스 이슈 페이지를 크롤링하여 본문을 수집하는 콜렉터입니다."""
+    def collect(self) -> list[FeedItem]:
+        from curato.core.config import config
+        urls = config.naver_issue_urls
+        if not urls:
+            return []
+            
+        items = []
+        for url in urls:
+            try:
+                resp = get_with_delay(url)
+                if not resp:
+                    continue
+                soup = BeautifulSoup(resp.text, 'html.parser')
+                links = soup.select('a[href]')
+                article_links = set(l['href'] for l in links if '/article/' in l['href'])
+                
+                for link in article_links:
+                    if len(items) >= 200:
+                        break
+                    
+                    import re
+                    match = re.search(r'/article/(\d+)/(\d+)', link)
+                    if not match:
+                        continue
+                    oid, aid = match.groups()
+                    print_url = f"https://n.news.naver.com/article/print/{oid}/{aid}"
+                    
+                    try:
+                        p_resp = get_with_delay(print_url)
+                        if not p_resp: continue
+                        p_soup = BeautifulSoup(p_resp.text, 'html.parser')
+                        
+                        title_tag = p_soup.select_one('.media_end_head_headline, h3')
+                        if not title_tag: continue
+                        title = title_tag.text.strip()
+                        
+                        body_tag = p_soup.select_one('#articeBody, #dic_area')
+                        if not body_tag: continue
+                        body_text = ' '.join(body_tag.stripped_strings)
+                        
+                        if len(body_text) < 50: continue
+                        
+                        item = self.create_feed_item(
+                            title=title,
+                            url=link,
+                            source="Naver Issue",
+                            snippet=body_text[:1000]
+                        )
+                        if item:
+                            items.append(item)
+                    except Exception as e:
+                        print(f"Error fetching print URL {print_url}: {e}")
+                        
+            except Exception as e:
+                print(f"Error fetching issue URL {url}: {e}")
+                
+        return items

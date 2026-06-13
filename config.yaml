@@ -1,7 +1,15 @@
 collectors:
   clien: false
-  naver: true
+  naver: false
+  naver_issue: true
   ruliweb: false
+  hackernews: true
+  reddit: false
+  github: false
+
+naver_issue_urls:
+  - "https://media.naver.com/issue/092/492"
+
 grouper:
   min_cluster_size: 2
   min_samples: 2
