@@ -1,0 +1,9 @@
+sentence-transformers>=2.2.2
+faiss-cpu>=1.7.4
+hdbscan>=0.8.33
+kiwipiepy>=0.16.2
+duckduckgo-search>=4.4.1
+python-dotenv
+requests
+beautifulsoup4
+pyyaml
