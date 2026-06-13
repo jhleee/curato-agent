@@ -1,14 +1,14 @@
 /* ═══════════════════════════════════════════════════════════
-   Curato TUI — Textual CSS
+   Curato TUI — Textual CSS (Full)
    ═══════════════════════════════════════════════════════════ */
-
-/* ── Global ──────────────────────────────────────────────── */
 
 Screen {
     background: $surface;
 }
 
-/* ── Dashboard layout ────────────────────────────────────── */
+/* ═════════════════════════════════════════════════════════
+   Tab 1: 대시보드
+   ═════════════════════════════════════════════════════════ */
 
 #dashboard-layout {
     height: 100%;
@@ -32,13 +32,12 @@ Screen {
     color: $text-muted;
 }
 
-/* ── Stage panel ─────────────────────────────────────────── */
+/* ── Stage Cards ──────────────────────────────────────── */
 
 #stage-panel {
     height: auto;
     max-height: 14;
-    padding: 1 2;
-    layout: horizontal;
+    padding: 1 1;
     overflow-x: auto;
 }
 
@@ -67,7 +66,7 @@ Screen {
     background: $error 15%;
 }
 
-/* ── Log panel ───────────────────────────────────────────── */
+/* ── Log ──────────────────────────────────────────────── */
 
 #log {
     height: 1fr;
@@ -77,7 +76,102 @@ Screen {
     background: $surface;
 }
 
-/* ── Results layout ──────────────────────────────────────── */
+/* ═════════════════════════════════════════════════════════
+   Tab 2: 수집
+   ═════════════════════════════════════════════════════════ */
+
+#collect-layout {
+    height: 100%;
+}
+
+#collect-top-bar {
+    height: 3;
+    padding: 0 1;
+    align: left middle;
+    background: $panel;
+}
+
+#collect-top-bar Button {
+    margin: 0 1;
+    min-width: 12;
+}
+
+#collect-desc {
+    margin-left: 1;
+    color: $text-muted;
+}
+
+#source-cards {
+    height: auto;
+    max-height: 12;
+    padding: 1 1;
+    overflow-x: auto;
+}
+
+.source-card {
+    width: 30;
+    height: 8;
+    margin: 0 1;
+    padding: 1;
+    border: round $primary-background;
+    background: $panel;
+}
+
+.source-card.src-running {
+    border: round $warning;
+    background: $warning 15%;
+}
+
+.source-card.src-done {
+    border: round $success;
+    background: $success 15%;
+}
+
+.source-card.src-error {
+    border: round $error;
+    background: $error 15%;
+}
+
+.source-header {
+    height: 3;
+    align: left middle;
+}
+
+.source-name {
+    width: 1fr;
+    content-align: left middle;
+}
+
+.source-btn {
+    min-width: 8;
+}
+
+.source-status {
+    margin-top: 1;
+    color: $text-muted;
+}
+
+.source-count {
+    color: $accent;
+}
+
+.section-label {
+    margin: 1 2 0 2;
+    text-style: bold;
+    color: $text;
+}
+
+#collect-log {
+    height: 1fr;
+    margin: 1 2;
+    padding: 1;
+    border: round $primary-background;
+    background: $surface;
+}
+
+/* ═════════════════════════════════════════════════════════
+   Tab 3: 결과
+   ═════════════════════════════════════════════════════════ */
 
 #results-layout {
     height: 100%;
@@ -109,4 +203,94 @@ Screen {
 
 #detail-table {
     height: 1fr;
+}
+
+/* ═════════════════════════════════════════════════════════
+   Tab 4: 설정
+   ═════════════════════════════════════════════════════════ */
+
+#config-layout {
+    height: 100%;
+}
+
+#config-top-bar {
+    height: 3;
+    padding: 0 1;
+    align: left middle;
+    background: $panel;
+}
+
+#config-top-bar Button {
+    margin: 0 1;
+    min-width: 12;
+}
+
+#config-desc {
+    margin-left: 1;
+    color: $text-muted;
+}
+
+#config-scroll {
+    height: 1fr;
+    margin: 1 2;
+    padding: 1;
+    border: round $primary-background;
+}
+
+.config-section-label {
+    margin: 1 0 0 0;
+    text-style: bold underline;
+    color: $accent;
+}
+
+.config-row {
+    height: 3;
+    margin: 0 0;
+    align: left middle;
+}
+
+.config-key {
+    width: 40;
+    content-align: left middle;
+    color: $text;
+    padding-right: 2;
+}
+
+.config-input {
+    width: 1fr;
+}
+
+/* ═════════════════════════════════════════════════════════
+   Tab 5: DB 탐색
+   ═════════════════════════════════════════════════════════ */
+
+#db-layout {
+    height: 100%;
+}
+
+#db-top-bar {
+    height: 3;
+    padding: 0 1;
+    align: left middle;
+    background: $panel;
+}
+
+#db-top-bar Button {
+    margin: 0 1;
+    min-width: 10;
+}
+
+.db-search {
+    width: 40;
+    margin: 0 1;
+}
+
+#db-count-label {
+    margin-left: 1;
+    color: $text-muted;
+}
+
+#db-table {
+    height: 1fr;
+    margin: 1 2;
 }
