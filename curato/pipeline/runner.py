@@ -157,11 +157,17 @@ class PipelineRunner:
 
     def _stage_group(self):
         yield PipelineEvent("group", "start", "Grouping candidates...")
-        all_ids, all_vectors = self._vector_index.get_all_vectors()
+        target_ids = [item.id for item in self.new_items]
+        all_ids, all_vectors = self._vector_index.get_vectors_by_ids(target_ids)
+        
+        if not all_ids:
+            yield PipelineEvent("group", "done", "No vectors found for grouping.")
+            return
 
         collapser = NearDuplicateCollapser()
         engagement_scores = {item.id: (item.comment_count + item.upvote_count) for item in self.new_items}
         collapsed_groups = collapser.collapse(all_ids, all_vectors, engagement_scores)
+        self._collapsed_groups = collapsed_groups
 
         clusterer = TopicClusterer()
         self._clusterer = clusterer
@@ -189,11 +195,18 @@ class PipelineRunner:
         for label, c_item_ids in self._clusters.items():
             if label == -1:
                 continue
-            cluster_size = len(c_item_ids)
+            
+            # 실제 모든 기사(중복 포함) ID 수집
+            real_item_ids = []
+            for cid in c_item_ids:
+                real_item_ids.append(cid)
+                real_item_ids.extend(self._collapsed_groups.get(cid, []))
+                
+            cluster_size = len(real_item_ids)
             if cluster_size < 2:
                 continue
 
-            c_items = [item for item in self.new_items if item.id in c_item_ids]
+            c_items = [item for item in self.new_items if item.id in real_item_ids]
             if not c_items:
                 continue
 

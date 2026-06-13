@@ -106,10 +106,27 @@ class LocalVectorIndex:
             return [], np.array([])
         vectors = np.zeros((n, self.dim), dtype=np.float32)
         # IndexFlatIP는 reconstruct 지원
-        for i in range(n):
-            vectors[i] = self.index.reconstruct(i)
         item_ids = [self.id_map[i] for i in range(n)]
         return item_ids, vectors
+
+    def get_vectors_by_ids(self, target_ids: list[str]) -> tuple[list[str], np.ndarray]:
+        n = self.index.ntotal
+        if n == 0:
+            return [], np.array([])
+            
+        reverse_map = {v: k for k, v in self.id_map.items()}
+        found_ids = []
+        found_vectors = []
+        for tid in target_ids:
+            if tid in reverse_map:
+                idx = reverse_map[tid]
+                found_ids.append(tid)
+                found_vectors.append(self.index.reconstruct(idx))
+                
+        if not found_ids:
+            return [], np.array([])
+            
+        return found_ids, np.array(found_vectors, dtype=np.float32)
 
     def save(self):
         faiss.write_index(self.index, self.index_path)
