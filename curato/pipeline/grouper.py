@@ -95,11 +95,12 @@ class TopicClusterer:
                      낮을수록 더 많이 군집을 만듭니다.
         metric: normalize된 벡터면 'euclidean'도 cosine과 동등합니다.
         """
+        method = config.grouper.get("cluster_selection_method", "leaf")
         self.clusterer = hdbscan.HDBSCAN(
             min_cluster_size=min_cluster_size,
             min_samples=min_samples,
             metric=metric,
-            cluster_selection_method='eom'
+            cluster_selection_method=method
         )
 
     def fit(
