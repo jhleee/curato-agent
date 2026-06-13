@@ -26,6 +26,7 @@ from textual.reactive import reactive
 from textual.message import Message
 
 from curato.core.config import config
+from curato.core.database import Database
 from curato.pipeline.runner import PipelineRunner, PipelineEvent
 
 
@@ -334,7 +335,7 @@ class CuratoApp(App):
             self._start_pipeline()
 
     def action_toggle_dark(self):
-        self.dark = not self.dark
+        self.theme = "textual-dark" if self.theme == "textual-light" else "textual-light"
 
     def action_refresh_db(self):
         self._refresh_db_table()
@@ -491,6 +492,9 @@ class CuratoApp(App):
         try:
             collector = cls(config.DB_PATH)
             items = collector.collect()
+            if items:
+                db = Database(config.DB_PATH)
+                db.insert_items(items)
             n = len(items)
             now = datetime.now().strftime("%H:%M:%S")
             card_fn(f"✅ {n}건 수집 ({now})", "src-done")

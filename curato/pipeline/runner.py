@@ -92,6 +92,10 @@ class PipelineRunner:
                 yield PipelineEvent("collect", "error", f"{name} error: {e}",
                                     {"source": name, "error": str(e)})
 
+        # DB에 저장
+        if self.new_items:
+            self.db.insert_items(self.new_items)
+
         yield PipelineEvent("collect", "done",
                             f"Collection complete: {len(self.new_items)} total items.",
                             {"total": len(self.new_items)})
@@ -213,17 +217,17 @@ class PipelineRunner:
                 yield PipelineEvent("llm", "progress",
                                     f"LLM curating {cluster['cluster_id']}",
                                     {"method": "llm", "reasons": reasons})
-                curated = llm_curator.curate_cluster(cluster)
-                if curated is None:
-                    curated = cluster
+                llm_res = llm_curator.curate_cluster(cluster)
+                if llm_res:
+                    cluster.update(llm_res)
             else:
                 yield PipelineEvent("llm", "progress",
                                     f"Auto-labeling {cluster['cluster_id']}",
                                     {"method": "auto"})
                 labels = auto_labeler.extract_keywords(cluster['top_titles'])
                 cluster['final_label'] = auto_labeler.build_label(labels)
-                curated = cluster
-            self.curated_issues.append(curated)
+                
+            self.curated_issues.append(cluster)
 
         yield PipelineEvent("llm", "done",
                             f"Curated {len(self.curated_issues)} issues.",
